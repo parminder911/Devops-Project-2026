@@ -99,13 +99,30 @@ cat terraform.tfvars
 aws_region         = "ap-south-1"
 project_name       = "hudocafe"
 environment        = "production"
-instance_type      = "t3.medium"
+instance_type      = "t2.micro"        ← FREE TIER eligible
 public_key_path    = "/root/.ssh/id_rsa.pub"
 domain_name        = "hudocafe.com"
 app_subdomain      = "api"
 vpc_cidr           = "10.0.0.0/16"
 public_subnet_cidr = "10.0.1.0/24"
 allowed_ssh_cidr   = "0.0.0.0/0"
+```
+
+> **⚠️ Instance type note:**
+> - `t2.micro` = **FREE TIER** (1 vCPU, 1 GB RAM) — good for this assignment
+> - `t3.medium` = NOT free tier — will charge ~$0.052/hr
+> - `t2.micro` is tight but runs k3s + all services fine for demo purposes
+> - If you already made `terraform.tfvars` with nano, make sure it says `t2.micro`
+
+**If you already created terraform.tfvars, check and fix it:**
+```bash
+# Verify instance type in your existing tfvars
+grep instance_type terraform.tfvars
+
+# If it says t3.medium, fix it:
+sed -i 's/t3.medium/t2.micro/' terraform.tfvars
+grep instance_type terraform.tfvars
+# Should now show: instance_type = "t2.micro"
 ```
 
 ### Step 1.3 — Initialize Terraform

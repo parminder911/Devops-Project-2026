@@ -17,15 +17,15 @@ variable "environment" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type (t3.medium recommended for k3s + all services)"
+  description = "EC2 instance type — t2.micro is free-tier eligible in ap-south-1"
   type        = string
-  default     = "t3.medium"
+  default     = "t2.micro"  # FREE TIER ELIGIBLE
 }
 
 variable "public_key_path" {
-  description = "Path to your SSH public key on local machine"
+  description = "Path to SSH public key — /root/.ssh/id_rsa.pub when running as root in WSL"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  default     = "/root/.ssh/id_rsa.pub"
 }
 
 variable "vpc_cidr" {

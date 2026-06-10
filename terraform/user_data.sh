@@ -12,6 +12,18 @@ apt-get update -y
 apt-get upgrade -y
 apt-get install -y curl wget git unzip jq ca-certificates gnupg lsb-release
 
+# ── 2. Add 2GB Swap (CRITICAL for t2.micro — only 1GB RAM) ───────────────────
+# Without swap, k3s + ArgoCD + all pods will OOM kill on t2.micro
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+# Reduce swap aggressiveness (prefer RAM over swap)
+echo 'vm.swappiness=10' >> /etc/sysctl.conf
+sysctl -p
+echo "✅ Swap: $(free -h | grep Swap)"
+
 # ── 2. Install Docker ─────────────────────────────────────────────────────────
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
