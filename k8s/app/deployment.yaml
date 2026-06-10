@@ -21,16 +21,14 @@ spec:
       labels:
         app: api
         tier: backend
-      annotations:
-        # Forces pod restart when image changes even if tag is same
-        rollme: "{{ randAlphaNum 5 | quote }}"
     spec:
       imagePullSecrets:
         - name: ecr-secret
       containers:
         - name: api
-          # ← CI/CD will update this image tag automatically
-          image: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/hudocafe/api:latest
+          # CI/CD updates this image tag on every push to main
+          # Format: 652942059153.dkr.ecr.ap-south-1.amazonaws.com/hudocafe/api:<git-sha>
+          image: 652942059153.dkr.ecr.ap-south-1.amazonaws.com/hudocafe/api:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -58,14 +56,14 @@ spec:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds:       15
             failureThreshold:    3
           readinessProbe:
             httpGet:
               path: /ready
               port: 8000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds:       10
           resources:
             requests:

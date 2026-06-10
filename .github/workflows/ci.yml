@@ -9,6 +9,7 @@ on:
 
 env:
   AWS_REGION:      ap-south-1
+  AWS_ACCOUNT_ID:  "652942059153"
   ECR_REPOSITORY:  hudocafe/api
   IMAGE_TAG:       ${{ github.sha }}
 
