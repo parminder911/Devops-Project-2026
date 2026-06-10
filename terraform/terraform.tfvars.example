@@ -1,0 +1,14 @@
+# ── terraform.tfvars.example ──────────────────────────────────────────────────
+# Copy this to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars to Git.
+
+aws_region         = "ap-south-1"
+project_name       = "hudocafe"
+environment        = "production"
+instance_type      = "t3.medium"
+public_key_path    = "~/.ssh/id_rsa.pub"
+domain_name        = "hudocafe.com"
+app_subdomain      = "api"
+allowed_ssh_cidr   = "YOUR_IP/32"   # Replace with your actual IP for security
+vpc_cidr           = "10.0.0.0/16"
+public_subnet_cidr = "10.0.1.0/24"
