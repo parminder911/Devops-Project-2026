@@ -10,7 +10,7 @@ import redis
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# ── Structured JSON Logger ──────────────────────────────────────────────────
+# ── Structured JSON Logger ──────────────────────────────────────────────────#
 class JSONFormatter(logging.Formatter):
     def format(self, record):
         log_obj = {
