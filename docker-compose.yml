@@ -2,8 +2,7 @@ version: '3.8'
 
 # ── Production Docker Compose ─────────────────────────────────────────────────
 # Usage:
-#   Local dev : docker compose up -d
-#   Production : docker compose -f docker-compose.yml up -d --build
+#   docker compose up -d
 
 services:
 
@@ -54,9 +53,7 @@ services:
 
   # ── FastAPI Application ─────────────────────────────────────────────────────
   web:
-    build:
-      context:    ./app
-      dockerfile: Dockerfile
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/hudocafe/api:${IMAGE_TAG:-latest}
     container_name: production_api
     environment:
       - REDIS_HOST=redis
@@ -87,12 +84,9 @@ services:
     container_name: production_proxy
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - nginx_logs:/var/log/nginx
-      # SSL certs (mounted from Let's Encrypt / ACM or certbot)
-      # - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - web
     networks:
@@ -119,4 +113,4 @@ networks:
     driver: bridge
   backend_network:
     driver: bridge
-    internal: true   # Redis & PostgreSQL never reachable from outside Docker
+    internal: true   # Redis & PostgreSQL are completely isolated from outside networks

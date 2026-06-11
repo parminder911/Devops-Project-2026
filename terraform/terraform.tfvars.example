@@ -1,25 +1,14 @@
 # ── terraform.tfvars ──────────────────────────────────────────────────────────
-# This is your actual variables file — listed in .gitignore (never committed).
-# Steps:
+# Copy this file to terraform.tfvars and fill in your details:
 #   cp terraform.tfvars.example terraform.tfvars
-#   terraform apply -var-file=terraform.tfvars
+#   terraform apply
 
-aws_region         = "ap-south-1"
-project_name       = "hudocafe"
-environment        = "production"
+aws_region           = "ap-south-1"
+project_name         = "hudocafe"
+environment          = "production"
 
-# t2.micro = FREE TIER eligible in ap-south-1
-# Note: t2.micro has 1 vCPU / 1 GB RAM — runs k3s + all services (tight but works)
-instance_type      = "t2.micro"
+# Your Route 53 domain name
+domain_name          = "hudocafe.com"
 
-# SSH key path — you are running as root in WSL
-public_key_path    = "/root/.ssh/id_rsa.pub"
-
-domain_name        = "hudocafe.com"
-app_subdomain      = "api"
-vpc_cidr           = "10.0.0.0/16"
-public_subnet_cidr = "10.0.1.0/24"
-
-# SSH access — 0.0.0.0/0 = allow all (OK for assignment)
-# For production restrict to: "YOUR_IP/32"
-allowed_ssh_cidr   = "0.0.0.0/0"
+# The Instance ID of your manually created EC2 instance in ap-south-1
+existing_instance_id = "i-xxxxxxxxxxxxxxxxx"

@@ -1,99 +1,190 @@
-# ─── Terraform Provider & Backend ────────────────────────────────────────────
 terraform {
   required_version = ">= 1.5.0"
-
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
   }
-
-  # Remote state in S3 — uncomment after creating the bucket manually first
-  # backend "s3" {
-  #   bucket  = "hudocafe-terraform-state"
-  #   key     = "devops-project/terraform.tfstate"
-  #   region  = "ap-south-1"
-  #   encrypt = true
-  # }
 }
 
 provider "aws" {
   region = var.aws_region
 }
 
-# ─── Data: Latest Ubuntu 22.04 AMI ───────────────────────────────────────────
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
+# ─── Data Sources ─────────────────────────────────────────────────────────────
 
+# Fetch default VPC and subnets to avoid creating new networking resources
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
   filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
-# ─── Key Pair ─────────────────────────────────────────────────────────────────
-resource "aws_key_pair" "devops" {
-  key_name   = "${var.project_name}-key"
-  public_key = file(var.public_key_path)
+# Fetch the existing ACM certificate for SSL termination
+data "aws_acm_certificate" "app_cert" {
+  domain   = var.domain_name
+  statuses = ["ISSUED"]
+}
 
-  # If key pair already exists, import it:  bash scripts/terraform-import.sh
-  lifecycle {
-    ignore_changes = [public_key, tags]
+# Fetch the existing Route 53 hosted zone
+data "aws_route53_zone" "primary" {
+  name         = var.domain_name
+  private_zone = false
+}
+
+# Fetch the manually created EC2 instance details
+data "aws_instance" "manual_server" {
+  instance_id = var.existing_instance_id
+}
+
+# ─── Security Groups ──────────────────────────────────────────────────────────
+
+# Security Group for the Application Load Balancer (ALB)
+resource "aws_security_group" "alb_sg" {
+  name        = "${var.project_name}-alb-sg"
+  description = "Allow inbound HTTP and HTTPS traffic to ALB"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = local.common_tags
-}
-
-# ─── EC2 Instance ─────────────────────────────────────────────────────────────
-resource "aws_instance" "app_server" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = var.instance_type
-  key_name                    = aws_key_pair.devops.key_name
-  subnet_id                   = aws_subnet.public.id
-  vpc_security_group_ids      = [aws_security_group.app_sg.id]
-  associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
-
-  root_block_device {
-    volume_size           = 30
-    volume_type           = "gp3"
-    delete_on_termination = true
-    encrypted             = true
+  ingress {
+    description = "Allow HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Bootstrap: install Docker, k3s, ArgoCD
-  user_data = file("${path.module}/user_data.sh")
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  tags = merge(local.common_tags, {
-    Name = "${var.project_name}-server"
-    Role = "app-server"
-  })
-}
-
-# ─── Elastic IP ───────────────────────────────────────────────────────────────
-resource "aws_eip" "app_eip" {
-  instance = aws_instance.app_server.id
-  domain   = "vpc"
-
-  tags = merge(local.common_tags, {
-    Name = "${var.project_name}-eip"
-  })
-
-  depends_on = [aws_internet_gateway.igw]
-}
-
-# ─── Locals ───────────────────────────────────────────────────────────────────
-locals {
-  common_tags = {
-    Project     = var.project_name
+  tags = {
+    Name        = "${var.project_name}-alb-sg"
     Environment = var.environment
-    ManagedBy   = "Terraform"
-    Owner       = "DevOps"
+  }
+}
+
+# ─── Application Load Balancer (ALB) ──────────────────────────────────────────
+
+resource "aws_lb" "app_alb" {
+  name               = "${var.project_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = data.aws_subnets.default.ids
+
+  tags = {
+    Name        = "${var.project_name}-alb"
+    Environment = var.environment
+  }
+}
+
+# Target Group pointing to EC2 instances (running Nginx on port 80)
+resource "aws_lb_target_group" "app_tg" {
+  name        = "${var.project_name}-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default.id
+  target_type = "instance"
+
+  health_check {
+    path                = "/health"
+    port                = "80"
+    protocol            = "HTTP"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 3
+    unhealthy_threshold = 3
+    matcher             = "200"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-tg"
+    Environment = var.environment
+  }
+}
+
+# Attach the manually created EC2 instance to the target group
+resource "aws_lb_target_group_attachment" "app_attachment" {
+  target_group_arn = aws_lb_target_group.app_tg.arn
+  target_id        = data.aws_instance.manual_server.id
+  port             = 80
+}
+
+# ─── ALB Listeners ────────────────────────────────────────────────────────────
+
+# HTTP Listener (Redirect HTTP to HTTPS)
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+# HTTPS Listener (SSL termination using existing ACM certificate)
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = data.aws_acm_certificate.app_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app_tg.arn
+  }
+}
+
+# ─── Route 53 DNS Records ──────────────────────────────────────────────────────
+
+# Point the root domain to the ALB
+resource "aws_route53_record" "root" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app_alb.dns_name
+    zone_id                = aws_lb.app_alb.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# Point the www domain to the ALB
+resource "aws_route53_record" "www" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.app_alb.dns_name
+    zone_id                = aws_lb.app_alb.zone_id
+    evaluate_target_health = true
   }
 }
