@@ -131,31 +131,94 @@ DevOps-project/
 
 
 
+<table>
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/08f341cd-6a4d-49e5-b256-cdd2b2d06d12" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/dcb10de0-e4e9-4acc-857a-1f8ad7e83fcf" width="100%">
+</td>
+</tr>
 
-<img width="1245" height="590" alt="working piple" src="https://github.com/user-attachments/assets/08f341cd-6a4d-49e5-b256-cdd2b2d06d12" />
-<img width="738" height="502" alt="vghjg" src="https://github.com/user-attachments/assets/dcb10de0-e4e9-4acc-857a-1f8ad7e83fcf" />
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/7df05a8c-b80f-428c-9877-a36a40b70626" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/7122f3b0-6b26-452a-ade3-46c2c5763b07" width="100%">
+</td>
+</tr>
 
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/02316a08-ba01-4ba1-9397-ebf8eff77496" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/fad27dad-26be-4fbf-a997-b78342e623c5" width="100%">
+</td>
+</tr>
 
-<img width="1255" height="588" alt="fast api runi" src="https://github.com/user-attachments/assets/7df05a8c-b80f-428c-9877-a36a40b70626" />
-<img width="1269" height="248" alt="container info" src="https://github.com/user-attachments/assets/7122f3b0-6b26-452a-ade3-46c2c5763b07" />
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/605abdc5-c5ca-49a7-8635-e064f67c4587" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/727b3ff2-340b-4a9c-89fe-73830769222d" width="100%">
+</td>
+</tr>
 
-<img width="1269" height="248" alt="container info" src="https://github.com/user-attachments/assets/02316a08-ba01-4ba1-9397-ebf8eff77496" />
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/4fb15228-87b5-496c-a444-623bc7b3f23f" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/9960f9b1-3879-4eb6-b459-b60f2da47aa4" width="100%">
+</td>
+</tr>
 
-<img width="892" height="569" alt="variabi&#39;" src="https://github.com/user-attachments/assets/fad27dad-26be-4fbf-a997-b78342e623c5" />
-<img width="678" height="497" alt="simple output" src="https://github.com/user-attachments/assets/605abdc5-c5ca-49a7-8635-e064f67c4587" />
-<img width="1148" height="557" alt="postegres losg" src="https://github.com/user-attachments/assets/727b3ff2-340b-4a9c-89fe-73830769222d" />
-<img width="1242" height="569" alt="pipeline rune" src="https://github.com/user-attachments/assets/4fb15228-87b5-496c-a444-623bc7b3f23f" />
-<img width="1262" height="663" alt="logs fi" src="https://github.com/user-attachments/assets/9960f9b1-3879-4eb6-b459-b60f2da47aa4" />
-<img width="892" height="569" alt="variabi&#39;" src="https://github.com/user-attachments/assets/ffea1aea-79e1-4edf-8221-989a9ca85bcf" />
-<img width="738" height="502" alt="vghjg" src="https://github.com/user-attachments/assets/b33575a5-b5e9-4c27-ba46-5f54ff1b53c5" />
-<img width="1245" height="590" alt="working piple" src="https://github.com/user-attachments/assets/bbabd85f-ca84-472e-aa97-211a76dd69c0" />
-<img width="678" height="497" alt="simple output" src="https://github.com/user-attachments/assets/018c74df-8a1b-4a5f-ad14-4589b1e4a4c8" />
-<img width="1148" height="557" alt="postegres losg" src="https://github.com/user-attachments/assets/56d262fa-26a7-48ac-a14d-4a7acd86cac1" />
-<img width="1242" height="569" alt="pipeline rune" src="https://github.com/user-attachments/assets/37418397-60b5-48b7-aaff-656e6a5e23aa" />
-<img width="1262" height="663" alt="logs fi" src="https://github.com/user-attachments/assets/8907a37b-1cad-45db-8439-c5516e31c7ab" />
-<img width="1255" height="588" alt="fast api runi" src="https://github.com/user-attachments/assets/6f1f0b5c-8e8b-4eac-8d95-f85d3b84f470" />
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/ffea1aea-79e1-4edf-8221-989a9ca85bcf" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/b33575a5-b5e9-4c27-ba46-5f54ff1b53c5" width="100%">
+</td>
+</tr>
 
-<img width="1198" height="616" alt="ssl" src="https://github.com/user-attachments/assets/1eec192f-aa51-4483-9529-480eb08ba842" />
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/bbabd85f-ca84-472e-aa97-211a76dd69c0" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/018c74df-8a1b-4a5f-ad14-4589b1e4a4c8" width="100%">
+</td>
+</tr>
+
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/56d262fa-26a7-48ac-a14d-4a7acd86cac1" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/37418397-60b5-48b7-aaff-656e6a5e23aa" width="100%">
+</td>
+</tr>
+
+<tr>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/8907a37b-1cad-45db-8439-c5516e31c7ab" width="100%">
+</td>
+<td width="50%">
+<img src="https://github.com/user-attachments/assets/6f1f0b5c-8e8b-4eac-8d95-f85d3b84f470" width="100%">
+</td>
+</tr>
+
+<tr>
+<td colspan="2" align="center">
+<img src="https://github.com/user-attachments/assets/1eec192f-aa51-4483-9529-480eb08ba842" width="70%">
+</td>
+</tr>
+</table>
 ![Uploading ec3 i nf.PNG…]()
 
 
