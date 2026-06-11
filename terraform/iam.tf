@@ -11,10 +11,16 @@ resource "aws_iam_role" "ec2_role" {
     }]
   })
 
+  # If this role already exists from a previous run, import it instead of erroring:
+  # bash scripts/terraform-import.sh
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   tags = local.common_tags
 }
 
-# ─── IAM Policy: ECR Pull + S3 Backup ────────────────────────────────────────
+# ─── IAM Policy: ECR Pull + S3 Backup + CloudWatch + SSM ─────────────────────
 resource "aws_iam_role_policy" "ec2_policy" {
   name = "${var.project_name}-ec2-policy"
   role = aws_iam_role.ec2_role.id
@@ -58,7 +64,7 @@ resource "aws_iam_role_policy" "ec2_policy" {
         ]
         Resource = "arn:aws:logs:*:*:*"
       },
-      # Systems Manager (optional - for SSM session manager)
+      # Systems Manager
       {
         Effect   = "Allow"
         Action   = ["ssm:UpdateInstanceInformation", "ssmmessages:*"]
@@ -68,7 +74,7 @@ resource "aws_iam_role_policy" "ec2_policy" {
   })
 }
 
-# Attach AWS managed policies
+# Attach AWS managed policy
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -78,6 +84,10 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.project_name}-ec2-profile"
   role = aws_iam_role.ec2_role.name
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = local.common_tags
 }
@@ -89,6 +99,11 @@ resource "aws_ecr_repository" "app" {
 
   image_scanning_configuration {
     scan_on_push = true
+  }
+
+  # If repo already exists, import it:  bash scripts/terraform-import.sh
+  lifecycle {
+    ignore_changes = [tags]
   }
 
   tags = local.common_tags
@@ -115,6 +130,11 @@ resource "aws_ecr_lifecycle_policy" "app" {
 resource "aws_s3_bucket" "backups" {
   bucket        = "${var.project_name}-backups"
   force_destroy = false
+
+  # If bucket already exists, import it:  bash scripts/terraform-import.sh
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   tags = local.common_tags
 }

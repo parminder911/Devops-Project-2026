@@ -189,9 +189,190 @@ terraform apply -var-file=terraform.tfvars
 ```
 Type `yes` when prompted.
 
-**Expected output after completion:**
+---
+
+### ⚠️ Step 1.5-FIX — If You Get "AlreadyExists" Errors
+
+This happens when you ran terraform in a **different directory** before (e.g., in `a/` then again in `b/`) and the resources still exist in AWS but the new directory has no Terraform state.
+
+**You will see errors like:**
 ```
-Apply complete! Resources: 22 added, 0 changed, 0 destroyed.
+Error: EntityAlreadyExists: Role with name hudocafe-ec2-role already exists.
+Error: RepositoryAlreadyExistsException: The repository 'hudocafe/api' already exists.
+Error: BucketAlreadyOwnedByYou
+Error: InvalidKeyPair.Duplicate: The keypair already exists
+```
+
+**Fix — run the import script (imports existing resources into state):**
+```bash
+# Make sure you are in the terraform/ directory
+cd /home/parm007/b/Devops-Project-2026/terraform
+
+# Run the import script
+bash ../scripts/terraform-import.sh
+```
+
+**Expected output of import script:**
+```
+============================================================
+ Terraform Import — Hudocafe Existing Resources
+ AWS Account: 652942059153 | Region: ap-south-1
+============================================================
+
+[IMPORT] ━━━ Importing EC2 Key Pair ━━━
+[IMPORT] Importing: aws_key_pair.devops → hudocafe-key
+Import successful!
+[IMPORT] ✅ Imported: aws_key_pair.devops
+
+[IMPORT] ━━━ Importing IAM Resources ━━━
+[IMPORT] Importing: aws_iam_role.ec2_role → hudocafe-ec2-role
+Import successful!
+[IMPORT] ✅ Imported: aws_iam_role.ec2_role
+
+[IMPORT] Importing: aws_iam_role_policy.ec2_policy → hudocafe-ec2-role:hudocafe-ec2-policy
+Import successful!
+[IMPORT] ✅ Imported: aws_iam_role_policy.ec2_policy
+
+[IMPORT] Importing: aws_iam_role_policy_attachment.ssm → hudocafe-ec2-role/arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Import successful!
+[IMPORT] ✅ Imported: aws_iam_role_policy_attachment.ssm
+
+[IMPORT] Importing: aws_iam_instance_profile.ec2_profile → hudocafe-ec2-profile
+Import successful!
+[IMPORT] ✅ Imported: aws_iam_instance_profile.ec2_profile
+
+[IMPORT] ━━━ Importing ECR Repository ━━━
+[IMPORT] Importing: aws_ecr_repository.app → hudocafe/api
+Import successful!
+[IMPORT] ✅ Imported: aws_ecr_repository.app
+
+[IMPORT] ━━━ Importing S3 Bucket ━━━
+[IMPORT] Importing: aws_s3_bucket.backups → hudocafe-backups
+Import successful!
+[IMPORT] ✅ Imported: aws_s3_bucket.backups
+
+...
+
+============================================================
+[IMPORT] Import complete! Resources now in Terraform state:
+============================================================
+aws_key_pair.devops
+aws_iam_role.ec2_role
+aws_iam_role_policy.ec2_policy
+aws_iam_role_policy_attachment.ssm
+aws_iam_instance_profile.ec2_profile
+aws_ecr_repository.app
+aws_ecr_lifecycle_policy.app
+aws_s3_bucket.backups
+aws_s3_bucket_versioning.backups
+...
+data.aws_acm_certificate.app_cert
+data.aws_ami.ubuntu
+aws_route53_zone.primary
+aws_subnet.public
+aws_route_table_association.public
+
+============================================================
+✅ NOW RUN: terraform apply -var-file=terraform.tfvars
+============================================================
+```
+
+**Then run apply again — it will only create the REMAINING resources:**
+```bash
+terraform apply -var-file=terraform.tfvars
+```
+Type `yes`. This time it will only create:
+- VPC, Security Group, Internet Gateway, Route Table
+- EC2 instance + Elastic IP
+- Route53 A records
+
+**Expected:**
+```
+Apply complete! Resources: 8 added, 0 changed, 0 destroyed.
+```
+
+---
+
+### Step 1.5-CHECK — Verify you can also do individual imports manually
+
+If the script fails for a specific resource, import it manually:
+```bash
+# These are the individual import commands (run in terraform/ directory)
+
+# Key Pair
+terraform import -var-file=terraform.tfvars aws_key_pair.devops "hudocafe-key"
+
+# IAM Role
+terraform import -var-file=terraform.tfvars aws_iam_role.ec2_role "hudocafe-ec2-role"
+
+# IAM Inline Policy
+terraform import -var-file=terraform.tfvars aws_iam_role_policy.ec2_policy "hudocafe-ec2-role:hudocafe-ec2-policy"
+
+# IAM Policy Attachment
+terraform import -var-file=terraform.tfvars aws_iam_role_policy_attachment.ssm \
+  "hudocafe-ec2-role/arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+# IAM Instance Profile
+terraform import -var-file=terraform.tfvars aws_iam_instance_profile.ec2_profile "hudocafe-ec2-profile"
+
+# ECR Repository
+terraform import -var-file=terraform.tfvars aws_ecr_repository.app "hudocafe/api"
+
+# ECR Lifecycle Policy
+terraform import -var-file=terraform.tfvars aws_ecr_lifecycle_policy.app "hudocafe/api"
+
+# S3 Bucket
+terraform import -var-file=terraform.tfvars aws_s3_bucket.backups "hudocafe-backups"
+
+# S3 Versioning
+terraform import -var-file=terraform.tfvars aws_s3_bucket_versioning.backups "hudocafe-backups"
+
+# S3 Encryption
+terraform import -var-file=terraform.tfvars aws_s3_bucket_server_side_encryption_configuration.backups "hudocafe-backups"
+
+# S3 Lifecycle
+terraform import -var-file=terraform.tfvars aws_s3_bucket_lifecycle_configuration.backups "hudocafe-backups"
+```
+
+**Check what is currently in state after importing:**
+```bash
+terraform state list
+```
+**Expected (shows all imported + created resources):**
+```
+data.aws_acm_certificate.app_cert
+data.aws_ami.ubuntu
+aws_ecr_lifecycle_policy.app
+aws_ecr_repository.app
+aws_eip.app_eip
+aws_iam_instance_profile.ec2_profile
+aws_iam_role.ec2_role
+aws_iam_role_policy.ec2_policy
+aws_iam_role_policy_attachment.ssm
+aws_instance.app_server
+aws_internet_gateway.igw
+aws_key_pair.devops
+aws_route53_record.app_api
+aws_route53_record.app_root
+aws_route53_record.app_www
+aws_route53_record.argocd
+aws_route53_zone.primary
+aws_route_table.public
+aws_route_table_association.public
+aws_s3_bucket.backups
+aws_s3_bucket_lifecycle_configuration.backups
+aws_s3_bucket_server_side_encryption_configuration.backups
+aws_s3_bucket_versioning.backups
+aws_security_group.app_sg
+aws_subnet.public
+aws_vpc.main
+```
+
+---
+
+**Expected output after SUCCESSFUL apply:**
+```
+Apply complete! Resources: X added, 0 changed, 0 destroyed.
 
 Outputs:
 
@@ -219,7 +400,7 @@ setup_instructions = <<EOT
   2. Wait ~5 min for bootstrap, then: sudo tail -f /var/log/user-data.log
   3. Check k3s: kubectl get nodes
   4. Check ArgoCD: kubectl get pods -n argocd
-  5. Update nameservers at your registrar: ns-XXX.awsdns-XX.com, ...
+  5. Update nameservers at your registrar
   ECR URI: 652942059153.dkr.ecr.ap-south-1.amazonaws.com/hudocafe/api
   =============================================
 EOT
@@ -1157,6 +1338,35 @@ app-ingress   nginx   hudocafe.com,api.hudocafe.com      13.235.XX.XX     80, 44
 ---
 
 ## 🔧 Troubleshooting: Common Issues & Fixes
+
+### ❌ Terraform: `EntityAlreadyExists` / `RepositoryAlreadyExistsException` / `BucketAlreadyOwnedByYou` / `InvalidKeyPair.Duplicate`
+```bash
+# Resources from a previous apply still exist in AWS
+# Fix: import them into current state
+cd /home/parm007/b/Devops-Project-2026/terraform
+bash ../scripts/terraform-import.sh
+
+# Then apply again
+terraform apply -var-file=terraform.tfvars
+```
+
+### ❌ Terraform: `instance type t3.medium is not eligible for Free Tier`
+```bash
+# Fix: Use t2.micro instead
+sed -i 's/t3.medium/t2.micro/' terraform.tfvars
+grep instance_type terraform.tfvars
+# Expected: instance_type = "t2.micro"
+
+terraform apply -var-file=terraform.tfvars
+```
+
+### ❌ Terraform: `Failed to read variables file — terraform.tfvars does not exist`
+```bash
+# Fix: Copy the example file
+cp terraform.tfvars.example terraform.tfvars
+# Then edit if needed:
+cat terraform.tfvars
+```
 
 ### ❌ Pod stuck in `ImagePullBackOff`
 ```bash

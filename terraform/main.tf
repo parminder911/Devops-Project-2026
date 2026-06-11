@@ -42,6 +42,11 @@ resource "aws_key_pair" "devops" {
   key_name   = "${var.project_name}-key"
   public_key = file(var.public_key_path)
 
+  # If key pair already exists, import it:  bash scripts/terraform-import.sh
+  lifecycle {
+    ignore_changes = [public_key, tags]
+  }
+
   tags = local.common_tags
 }
 
